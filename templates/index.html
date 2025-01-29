@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معالج محتوى YouTube Shorts</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * { 
+            font-family: 'Almarai', sans-serif; 
+        }
+        
+        .hero-pattern {
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.08'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .gradient-button {
+            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+            transition: all 0.3s ease;
+        }
+
+        .gradient-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.2);
+        }
+
+        .loading-dots div {
+            animation: wave 1.2s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating-card {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .progress-bar {
+            transition: width 0.3s ease-in-out;
+        }
+
+        .status-pending {
+            color: #9CA3AF;
+        }
+        
+        .status-in_progress {
+            color: #3B82F6;
+        }
+        
+        .status-completed {
+            color: #10B981;
+        }
+        
+        .status-failed {
+            color: #EF4444;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- الشريط العلوي -->
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="text-xl font-bold text-gray-800">YouTube Shorts صانع المحتوى</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- القسم الرئيسي -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-2xl font-bold mb-6 text-center">معالج فيديوهات YouTube Shorts</h1>
+            
+            <form id="videoForm" class="space-y-4">
+                <!-- مفاتيح API -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium">Google API Key:</label>
+                    <div class="relative">
+                        <input type="password" 
+                               id="googleApiKey" 
+                               class="w-full p-2 border rounded pr-10" 
+                               required>
+                        <button type="button" 
+                                class="password-toggle absolute inset-y-0 right-0 px-3 flex items-center"
+                                data-target="googleApiKey">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium">Eleven Labs API Key:</label>
+                    <div class="relative">
+                        <input type="password" 
+                               id="elevenLabsApiKey" 
+                               class="w-full p-2 border rounded pr-10" 
+                               required>
+                        <button type="button" 
+                                class="password-toggle absolute inset-y-0 right-0 px-3 flex items-center"
+                                data-target="elevenLabsApiKey">
+                            👁️
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium">Eleven Labs Voice ID:</label>
+                    <input type="text" 
+                           id="elevenLabsVoiceId" 
+                           class="w-full p-2 border rounded" 
+                           required>
+                </div>
+                
+                <!-- موضوع الفيديو -->
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium">موضوع الفيديو:</label>
+                    <textarea id="topic" 
+                              class="w-full p-2 border rounded h-24" 
+                              placeholder="اكتب موضوع الفيديو هنا..."
+                              required></textarea>
+                </div>
+                
+                <!-- زر الإرسال -->
+                <button type="submit" 
+                        class="w-full gradient-button text-white py-3 rounded hover:from-blue-700 hover:to-blue-800 transition">
+                    معالجة الفيديو
+                </button>
+            </form>
+            
+            <!-- مؤشر التحميل -->
+            <div id="loading" class="hidden">
+                <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg p-8 max-w-sm w-full mx-4">
+                        <div class="flex flex-col items-center">
+                            <div class="loading-dots flex space-x-2">
+                                <div class="w-4 h-4 bg-blue-600 rounded-full"></div>
+                                <div class="w-4 h-4 bg-blue-600 rounded-full"></div>
+                                <div class="w-4 h-4 bg-blue-600 rounded-full"></div>
+                            </div>
+                            <p class="text-gray-700 text-lg font-medium mt-4">جاري معالجة طلبك...</p>
+                            <p class="text-gray-500 text-sm mt-2">يرجى الانتظار</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- حالة المهام -->
+            <div id="taskStatus" class="mt-8 space-y-4 hidden">
+                <h2 class="text-xl font-semibold mb-4">حالة المهام:</h2>
+                <div class="space-y-4">
+                    <div class="task-item">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">1. توليد المواضيع</span>
+                            <span id="task1Status" class="status-pending">قيد الانتظار</span>
+                        </div>
+                        <div class="bg-gray-200 rounded-full h-2">
+                            <div id="task1Progress" class="progress-bar bg-blue-600 rounded-full h-2 w-0"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="task-item">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">2. تحليل الاتجاهات</span>
+                            <span id="task2Status" class="status-pending">قيد الانتظار</span>
+                        </div>
+                        <div class="bg-gray-200 rounded-full h-2">
+                            <div id="task2Progress" class="progress-bar bg-blue-600 rounded-full h-2 w-0"></div>
+                        </div>
+                    </div>
+                    <!-- باقي المهام -->
+                </div>
+            </div>
+            
+            <!-- النتائج -->
+            <div id="results" class="mt-8 space-y-6 hidden">
+                <h2 class="text-xl font-semibold">النتائج:</h2>
+                
+                <!-- المواضيع المقترحة -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">المواضيع المقترحة</h3>
+                    <div id="task1Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- تحليل الاتجاهات -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">تحليل الاتجاهات</h3>
+                    <div id="task2Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- تحسين التفاعل -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">استراتيجيات التفاعل</h3>
+                    <div id="task3Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- النص -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">نص الفيديو</h3>
+                    <div id="task4Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- تحسين SEO -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">تحسين محركات البحث (SEO)</h3>
+                    <div id="task5Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- الوصف -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">وصف الفيديو</h3>
+                    <div id="task6Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- العنوان -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">عنوان الفيديو</h3>
+                    <div id="task7Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- الصوت -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">المقطع الصوتي</h3>
+                    <div id="task8Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- ستوري بورد -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">تصور المشاهد (Storyboard)</h3>
+                    <div id="task9Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- تفاصيل المشاهد -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">تفاصيل المشاهد</h3>
+                    <div id="task10Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+
+                <!-- الصور -->
+                <div class="result-section">
+                    <h3 class="font-medium text-lg mb-3">الصور المولدة</h3>
+                    <div id="task11Result" class="bg-gray-50 rounded-lg p-4"></div>
+                </div>
+            </div>
+            
+            <!-- رسائل الخطأ -->
+            <div id="error" class="hidden mt-4 p-4 bg-red-100 text-red-700 rounded">
+                <p class="error-message"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- تضمين ملف JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

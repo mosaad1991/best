@@ -1,0 +1,9 @@
+
+هذة هي البيانات الصحيحة هل تحتاج الي اي بيانات اخري للربط الكامل والصحيح وتقديم الكود الكامل 
+
+AUTH_USERNAME : crazyteenager
+AUTH_PASSWORD : 29109161100197#mo
+JWT_SECRET_KEY : secrets@(01016468356)
+SESSION_SECRET : [generate-unique-key]
+SECRET_KEY : secrets.token_hex(01016468356)
+https://core-logic.onrender.com

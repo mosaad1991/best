@@ -1,0 +1,42 @@
+# استخدام Python 3.11 كصورة أساسية
+FROM python:3.11-slim
+
+# تعيين متغيرات البيئة
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    POETRY_VERSION=1.7.1
+
+# تثبيت المتطلبات الأساسية
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
+# إنشاء وتعيين دليل العمل
+WORKDIR /app
+
+# نسخ ملفات المشروع
+COPY requirements.txt .
+COPY gunicorn.conf.py .
+COPY .env .
+COPY . .
+
+# تثبيت المتطلبات
+RUN pip install --no-cache-dir -r requirements.txt
+
+# إنشاء مستخدم غير جذري
+RUN useradd -m -u 1000 appuser
+USER appuser
+
+# إنشاء المجلدات اللازمة
+RUN mkdir -p /app/temp /app/logs
+
+# تعريض المنفذ
+EXPOSE 10000
+
+# تشغيل التطبيق
+CMD ["gunicorn", "--config", "gunicorn.conf.py", "app:app"]

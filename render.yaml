@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: youtube-shorts-generator
+    env: python
+    buildCommand: |
+      mkdir -p /tmp/prometheus
+      chmod 777 /tmp/prometheus
+      apt-get update && apt-get install -y ffmpeg netcat
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: bash ./start.sh
+    envVars:
+      - key: PORT
+        fromService:
+          type: web
+          name: youtube-shorts-generator
+          property: port
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: APP_ENV
+        value: production
+      - key: WORKERS
+        value: "4"
+      - key: LOG_LEVEL
+        value: "info"
+      # Redis and other variables remain the same...
+    healthCheckPath: /health
+    healthCheckTimeout: 60
+    autoDeploy: true
